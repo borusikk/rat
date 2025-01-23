@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Факультеты{% endblock %}
+
+{% block content %}
+<h1 class="my-4">Факультеты</h1>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+    {% for faculty in faculties %}
+    <div class="col">
+        <a href="{% url 'department_list' faculty.id %}" class="text-decoration-none">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ faculty.name }}</h5>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

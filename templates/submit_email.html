@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card shadow-sm mt-4">
+    <div class="card-body">
+        <h1 class="card-title mb-4">Введите вашу корпоративную почту</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.student_email.label_tag }}
+                {{ form.student_email|add_class:"form-control" }}
+                {% if form.student_email.errors %}
+                    <div class="text-danger mt-2">{{ form.student_email.errors }}</div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary">Отправить код</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Профиль преподавателя{% endblock %}
+
+{% block content %}
+<h1 class="my-4">{{ professor.name }}</h1>
+
+<h4>Отзывы:</h4>
+<ul>
+    {% for feedback in feedbacks %}
+    <li>
+        <p><strong>Профессионализм:</strong> {{ feedback.professionalism }}</p>
+        <p><strong>Доступность:</strong> {{ feedback.clarity }}</p>
+        <p><strong>Отношение:</strong> {{ feedback.attitude }}</p>
+        <p>{{ feedback.comment }}</p>
+    </li>
+    {% endfor %}
+</ul>
+
+<h4>Оставить отзыв:</h4>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Отправить</button>
+</form>
+{% endblock %}
