@@ -3,8 +3,9 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('faculty/<int:faculty_id>/', views.department_list, name='department_list'),
-    path('department/<int:department_id>/', views.professor_list, name='professor_list'),
     path('professor/<int:professor_id>/', views.professor_detail, name='professor_detail'),
-    path('department/<int:department_id>/statistics/', views.department_statistics, name='department_statistics'),
+    path('autocomplete/', views.professor_autocomplete, name='professor_autocomplete'),  # ✅ Добавлен поиск
+    path('department_ranking/', views.department_ranking, name='department_ranking'),
+    path("department/<int:department_id>/", views.professor_list, name="professor_list"),
+
 ]

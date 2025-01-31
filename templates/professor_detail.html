@@ -1,26 +1,77 @@
 {% extends 'base.html' %}
-
-{% block title %}Профиль преподавателя{% endblock %}
+{% block title %}{{ professor.name }}{% endblock %}
 
 {% block content %}
-<h1 class="my-4">{{ professor.name }}</h1>
+<div class="container mt-4">
+    <div class="row">
+        <!-- ФОТО ПРЕПОДАВАТЕЛЯ -->
+        <div class="col-md-4 text-center">
+            {% if professor.photo %}
+                <img src="{{ professor.photo.url }}" class="img-fluid rounded shadow" alt="Фото {{ professor.name }}" width="200">
+            {% else %}
+                <img src="/static/default_photo.jpg" class="img-fluid rounded shadow" alt="Фото отсутствует" width="200">
+            {% endif %}
+        </div>
 
-<h4>Отзывы:</h4>
-<ul>
+        <!-- ИНФОРМАЦИЯ О ПРЕПОДАВАТЕЛЕ -->
+        <div class="col-md-8">
+            <h2>{{ professor.name }}</h2>
+            <p class="text-muted">
+                Кафедры:
+                {% for department in professor.departments.all %}
+                    <span class="badge bg-primary">{{ department.name }}</span>
+                {% endfor %}
+            </p>
+
+            <!-- Средний рейтинг -->
+            <h4>Средний рейтинг</h4>
+            <ul class="list-group mb-3">
+                <li class="list-group-item">👨‍🏫 Профессионализм: <strong>{{ avg_rating.professionalism|default:"N/A"|floatformat:1 }}</strong></li>
+                <li class="list-group-item">📢 Понятность объяснения: <strong>{{ avg_rating.clarity|default:"N/A"|floatformat:1 }}</strong></li>
+                <li class="list-group-item">😊 Отношение к студентам: <strong>{{ avg_rating.attitude|default:"N/A"|floatformat:1 }}</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- ФОРМА ОТЗЫВА -->
+    <h4>{% if user_feedback %}Редактировать отзыв{% else %}Добавить отзыв{% endif %}</h4>
+    <form method="post" class="card p-3 shadow-sm">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">👨‍🏫 Профессионализм (1-5)</label>
+            {{ form.professionalism }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">📢 Понятность объяснения (1-5)</label>
+            {{ form.clarity }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">😊 Отношение к студентам (1-5)</label>
+            {{ form.attitude }}
+        </div>
+        <div class="mb-3">
+            <label class="form-label">💬 Комментарий (необязательно)</label>
+            {{ form.comment }}
+        </div>
+        <button type="submit" class="btn btn-success">Сохранить</button>
+    </form>
+
+    <hr>
+
+    <!-- СПИСОК ОТЗЫВОВ -->
+    <h4>Отзывы студентов</h4>
     {% for feedback in feedbacks %}
-    <li>
-        <p><strong>Профессионализм:</strong> {{ feedback.professionalism }}</p>
-        <p><strong>Доступность:</strong> {{ feedback.clarity }}</p>
-        <p><strong>Отношение:</strong> {{ feedback.attitude }}</p>
-        <p>{{ feedback.comment }}</p>
-    </li>
+        <div class="card mb-2 p-3 shadow-sm">
+            <p>⭐ Проф: {{ feedback.professionalism }}, 📢 Понятность: {{ feedback.clarity }}, 😊 Отношение: {{ feedback.attitude }}</p>
+            <p class="text-muted">🕒 {{ feedback.created_at|date:"d M Y, H:i" }}</p>
+            {% if feedback.comment %}
+                <blockquote class="blockquote">{{ feedback.comment }}</blockquote>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="text-muted">Отзывов пока нет.</p>
     {% endfor %}
-</ul>
-
-<h4>Оставить отзыв:</h4>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Отправить</button>
-</form>
+</div>
 {% endblock %}

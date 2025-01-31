@@ -1,28 +1,45 @@
 {% extends 'base.html' %}
-
-{% block title %}Преподаватели кафедры{% endblock %}
+{% block title %}Преподаватели {{ department.name }}{% endblock %}
 
 {% block content %}
-<h1 class="my-4">Преподаватели кафедры: {{ department.name }}</h1>
-<div class="row row-cols-1 row-cols-md-3 g-4">
-    {% for professor in professors %}
-    <div class="col">
-        <a href="{% url 'professor_detail' professor.id %}" class="text-decoration-none">
-            <div class="card shadow-sm">
-                {% if professor.photo %}
-                <img src="{{ professor.photo.url }}" class="card-img-top" alt="Фото {{ professor.name }}">
-                {% else %}
-                <img src="/static/default_photo.jpg" class="card-img-top" alt="Фото отсутствует">
-                {% endif %}
-                <div class="card-body">
+<div class="container mt-4">
+    <h2 class="mb-3 text-center">Преподаватели кафедры: {{ department.name }}</h2>
+
+    <div class="row">
+        {% for professor in professors %}
+        <div class="col-lg-4 col-md-6 col-sm-12">
+            <div class="card shadow-sm mb-4">
+                <!-- ФОТО -->
+                <div class="text-center mt-3">
+                    {% if professor.photo %}
+                        <img src="{{ professor.photo.url }}" class="professor-img" alt="{{ professor.name }}">
+                    {% else %}
+                        <img src="/static/default_photo.jpg" class="professor-img" alt="Фото отсутствует">
+                    {% endif %}
+                </div>
+
+                <div class="card-body text-center">
+                    <!-- Имя -->
                     <h5 class="card-title">{{ professor.name }}</h5>
-                    <p class="card-text">Средний рейтинг: {{ professor.avg_rating|default:"N/A" }}</p>
+
+                    <!-- Средний рейтинг -->
+                    <p class="card-text">
+                        ⭐ Средний рейтинг:
+                        <strong>
+                            {{ professor.calculated_avg_rating|default:"N/A"|floatformat:1 }}
+                        </strong>
+                    </p>
+
+                    <!-- Кнопка "Подробнее" -->
+                    <a href="{% url 'professor_detail' professor.id %}" class="btn btn-primary">
+                        Подробнее
+                    </a>
                 </div>
             </div>
-        </a>
+        </div>
+        {% empty %}
+            <p class="text-muted text-center">Преподавателей пока нет.</p>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
-<a href="{% url 'department_statistics' department.id %}" class="btn btn-secondary mt-4">Статистика кафедры</a>
-<a href="{% url 'department_list' department.faculty.id %}" class="btn btn-secondary mt-4">Назад</a>
 {% endblock %}

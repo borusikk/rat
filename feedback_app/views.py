@@ -1,122 +1,140 @@
+import traceback
+
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Avg, Count
-from django.core.cache import cache
-from .models import Faculty, Department, Professor, Feedback
+from django.db.models import Avg, Q, Count
+from django.http import JsonResponse
+from .models import Professor, Feedback, Department
 from .forms import FeedbackForm
 
+
 def home(request):
-    faculties = Faculty.objects.all()
-    return render(request, 'home.html', {'faculties': faculties})
+    """Главная страница с ТОП-5 преподавателей в 3 категориях, поиском и рейтингом кафедр"""
+
+    top_professionalism = list(Professor.objects.annotate(
+        avg_professionalism=Avg('feedback__professionalism')
+    ).order_by('-avg_professionalism')[:5])
+
+    top_clarity = list(Professor.objects.annotate(
+        avg_clarity=Avg('feedback__clarity')
+    ).order_by('-avg_clarity')[:5])
+
+    top_attitude = list(Professor.objects.annotate(
+        avg_attitude=Avg('feedback__attitude')
+    ).order_by('-avg_attitude')[:5])
+
+    return render(request, 'home.html', {
+        'top_professionalism': top_professionalism,
+        'top_clarity': top_clarity,
+        'top_attitude': top_attitude,
+    })
 
 
-def department_list(request, faculty_id):
-    faculty = get_object_or_404(Faculty, id=faculty_id)
-    departments = faculty.departments.all()
-    return render(request, 'department_list.html', {'faculty': faculty, 'departments': departments})
+def professor_autocomplete(request):
+    """API для поиска преподавателей (учитывает пробелы и регистр)"""
+    query = request.GET.get('q', '').strip()
+
+    try:
+        if query:
+            professors = Professor.objects.filter(
+                Q(name__icontains=query.strip())  # 🔍 Убираем пробелы
+            ).annotate(
+                calculated_avg_rating=(Avg('feedback__professionalism') + Avg('feedback__clarity') + Avg('feedback__attitude')) / 3
+            ).order_by('-calculated_avg_rating')[:5]
+
+            results = []
+            for professor in professors:
+                results.append({
+                    'id': professor.id,
+                    'name': professor.name.strip(),  # Убираем лишние пробелы в имени
+                    'photo': professor.photo.url if professor.photo else '/static/default_photo.jpg',
+                    'avg_rating': professor.calculated_avg_rating if professor.calculated_avg_rating else "N/A"
+                })
+
+            return JsonResponse({'results': results}, safe=False)
+
+        return JsonResponse({'results': []}, safe=False)
+
+    except Exception as e:
+        print("🔴 Ошибка в `professor_autocomplete`:", str(e))
+        print(traceback.format_exc())  # Показываем ошибку в консоли Django
+        return JsonResponse({'error': 'Ошибка сервера'}, status=500)
 
 
-def professor_list(request, department_id):
-    department = get_object_or_404(Department, id=department_id)
+def department_ranking(request):
+    """Рейтинг кафедр по среднему баллу всех преподавателей"""
+    departments = Department.objects.annotate(
+        avg_professionalism=Avg('professors__feedback__professionalism'),
+        avg_clarity=Avg('professors__feedback__clarity'),
+        avg_attitude=Avg('professors__feedback__attitude'),
+    ).order_by('-avg_professionalism')
 
-    # Используем кэширование
-    cache_key = f"professors_department_{department_id}"
-    professors = cache.get(cache_key)
+    return render(request, 'department_ranking.html', {'departments': departments})
 
-    if not professors:
-        professors = department.professors.annotate(
-            calculated_avg_professionalism=Avg('feedback__professionalism'),
-            calculated_avg_clarity=Avg('feedback__clarity'),
-            calculated_avg_attitude=Avg('feedback__attitude'),
-            calculated_feedback_count=Count('feedback')  # Переименованная аннотация
-        )
-        cache.set(cache_key, professors, 300)  # Кэшируем на 5 минут
 
-    return render(request, 'professor_list.html', {'department': department, 'professors': professors})
+def get_client_ip(request):
+    """Функция получения IP-адреса пользователя"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
 
 def professor_detail(request, professor_id):
-    professor = get_object_or_404(Professor, id=professor_id)
-    feedbacks = professor.feedback.all()
+    """Страница преподавателя с возможностью оставить/редактировать отзыв"""
+    professor = get_object_or_404(Professor.objects.prefetch_related('departments'), id=professor_id)
 
-    # Кэшируем статистику преподавателя
-    cache_key = f"professor_{professor_id}_stats"
-    avg_ratings = cache.get(cache_key)
+    # Считаем средний рейтинг
+    avg_rating = Feedback.objects.filter(professor=professor).aggregate(
+        professionalism=Avg('professionalism'),
+        clarity=Avg('clarity'),
+        attitude=Avg('attitude')
+    )
 
-    if not avg_ratings:
-        avg_ratings = feedbacks.aggregate(
-            avg_professionalism=Avg('professionalism'),
-            avg_clarity=Avg('clarity'),
-            avg_attitude=Avg('attitude')
-        )
-        cache.set(cache_key, avg_ratings, 300)  # Кэшируем на 5 минут
-
-    form = FeedbackForm()
-
-    if request.method == 'POST':
+    # Получаем отзыв пользователя (если есть)
+    user_feedback = None
+    if request.method == "POST":
         form = FeedbackForm(request.POST)
         if form.is_valid():
-            feedback = form.save(commit=False)
-            feedback.professor = professor
-            feedback.save()
+            feedback, created = Feedback.objects.update_or_create(
+                professor=professor,
+                user_ip=request.META.get("REMOTE_ADDR"),  # Идентификация по IP
+                defaults={
+                    "professionalism": form.cleaned_data["professionalism"],
+                    "clarity": form.cleaned_data["clarity"],
+                    "attitude": form.cleaned_data["attitude"],
+                    "comment": form.cleaned_data["comment"],
+                }
+            )
+            return redirect("professor_detail", professor_id=professor.id)
+    else:
+        user_feedback = Feedback.objects.filter(professor=professor, user_ip=request.META.get("REMOTE_ADDR")).first()
+        form = FeedbackForm(instance=user_feedback)
 
-            # Обновляем кэш
-            cache.delete(f"professor_{professor_id}_stats")
-            cache.delete(f"professors_department_{professor.department.id}")
+    # Все отзывы преподавателя
+    feedbacks = Feedback.objects.filter(professor=professor).order_by("-created_at")
 
-            return redirect('professor_detail', professor_id=professor.id)
-
-    return render(request, 'professor_detail.html', {
-        'professor': professor,
-        'feedbacks': feedbacks,
-        'avg_ratings': avg_ratings,
-        'form': form
+    return render(request, "professor_detail.html", {
+        "professor": professor,
+        "avg_rating": avg_rating,
+        "form": form,
+        "feedbacks": feedbacks,
+        "user_feedback": user_feedback,
     })
-
-
-def department_statistics(request, department_id):
+def professor_list(request, department_id):
+    """Выводит список преподавателей кафедры"""
     department = get_object_or_404(Department, id=department_id)
 
-    # Получение параметра сортировки
-    sort_by = request.GET.get('sort', 'name')
+    professors = department.professors.annotate(
+        calculated_avg_rating=(
+            Avg('feedback__professionalism') +
+            Avg('feedback__clarity') +
+            Avg('feedback__attitude')
+        ) / 3
+    )
 
-    # Кэшируем статистику кафедры
-    cache_key = f"department_{department_id}_stats_{sort_by}"
-    stats = cache.get(cache_key)
-
-    if not stats:
-        professors = department.professors.annotate(
-            calculated_avg_professionalism=Avg('feedback__professionalism'),
-            calculated_avg_clarity=Avg('feedback__clarity'),
-            calculated_avg_attitude=Avg('feedback__attitude'),
-            calculated_feedback_count=Count('feedback')
-        )
-
-        # Определение порядка сортировки
-        if sort_by == 'rating':
-            professors = professors.order_by('-calculated_avg_professionalism')
-        elif sort_by == 'reviews':
-            professors = professors.order_by('-calculated_feedback_count')
-        elif sort_by == 'name':
-            professors = professors.order_by('name')  # Сортировка по имени целиком
-        else:
-            professors = professors.order_by('name')
-
-        avg_department_rating = professors.aggregate(
-            avg_professionalism=Avg('calculated_avg_professionalism'),
-            avg_clarity=Avg('calculated_avg_clarity'),
-            avg_attitude=Avg('calculated_avg_attitude')
-        )
-
-        stats = {
-            'professors': list(professors),  # Преобразуем QuerySet в список для кэширования
-            'avg_department_rating': avg_department_rating,
-        }
-        cache.set(cache_key, stats, 300)  # Кэшируем на 5 минут
-
-    return render(request, 'department_statistics.html', {
-        'department': department,
-        'professors': stats['professors'],
-        'avg_department_rating': stats['avg_department_rating'],
-        'sort_by': sort_by
+    return render(request, "professor_list.html", {
+        "department": department,
+        "professors": professors,
     })
-

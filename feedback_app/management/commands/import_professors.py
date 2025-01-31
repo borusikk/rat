@@ -1,71 +1,70 @@
 import os
+import shutil
 from django.core.management.base import BaseCommand
+from django.conf import settings
 from feedback_app.models import Faculty, Department, Professor
-from django.core.files.base import ContentFile
-
 
 class Command(BaseCommand):
-    help = "Импорт данных о преподавателях из файловой структуры"
+    help = "Импортирует данные о преподавателях из указанной папки"
 
     def add_arguments(self, parser):
-        parser.add_argument('path', type=str, help="Путь к папке с данными")
+        parser.add_argument('data_path', type=str, help="Путь к папке с экспортированными данными")
 
-    def handle(self, *args, **kwargs):
-        base_path = kwargs['path']
-
-        if not os.path.exists(base_path):
-            self.stdout.write(self.style.ERROR(f"Путь {base_path} не существует"))
+    def handle(self, *args, **options):
+        base_dir = options['data_path']
+        if not os.path.exists(base_dir):
+            self.stdout.write(self.style.ERROR(f"❌ Папка '{base_dir}' не найдена!"))
             return
 
-        # Обход папок факультетов
-        for faculty_name in os.listdir(base_path):
-            faculty_path = os.path.join(base_path, faculty_name)
+        self.stdout.write(self.style.SUCCESS(f"📂 Начат импорт данных из: {base_dir}"))
+
+        media_dir = os.path.join(settings.MEDIA_ROOT, 'professors/photos/')
+        os.makedirs(media_dir, exist_ok=True)  # ✅ Создаем папку, если ее нет
+
+        for faculty_name in os.listdir(base_dir):
+            faculty_path = os.path.join(base_dir, faculty_name)
             if not os.path.isdir(faculty_path):
                 continue
 
             faculty, _ = Faculty.objects.get_or_create(name=faculty_name)
+            self.stdout.write(self.style.SUCCESS(f"✔ Факультет: {faculty.name}"))
 
-            # Обход папок кафедр
             for department_name in os.listdir(faculty_path):
                 department_path = os.path.join(faculty_path, department_name)
                 if not os.path.isdir(department_path):
                     continue
 
-                department, _ = Department.objects.get_or_create(
-                    name=department_name,
-                    faculty=faculty
-                )
+                department, _ = Department.objects.get_or_create(name=department_name, faculty=faculty)
+                self.stdout.write(self.style.SUCCESS(f"  ✔ Кафедра: {department.name}"))
 
-                # Обход файлов преподавателей
                 for file_name in os.listdir(department_path):
-                    if file_name.endswith('.txt'):
-                        professor_name = file_name[:-4].replace('_', ' ')
-                        text_file_path = os.path.join(department_path, file_name)
+                    file_path = os.path.join(department_path, file_name)
 
-                        # Читаем описание преподавателя
-                        with open(text_file_path, 'r', encoding='utf-8') as f:
-                            description = f.read().strip()
-
-                        # Создаем или обновляем преподавателя
-                        professor, created = Professor.objects.get_or_create(
-                            name=professor_name,
-                            department=department
-                        )
-                        professor.description = description
-
-                        # Добавляем фото, если файл существует
-                        photo_file_path = os.path.join(department_path, f"{file_name[:-4]}.jpg")
-                        if os.path.exists(photo_file_path):
-                            with open(photo_file_path, 'rb') as img_file:
-                                professor.photo.save(
-                                    f"{professor_name}.jpg",
-                                    ContentFile(img_file.read()),
-                                    save=True
-                                )
-
+                    if file_name.endswith(".txt"):  # Имя преподавателя
+                        professor_name = file_name.replace(".txt", "").replace("_", " ")
+                        professor, created = Professor.objects.get_or_create(name=professor_name)
+                        professor.departments.add(department)
                         professor.save()
 
-                        action = "Создан" if created else "Обновлен"
-                        self.stdout.write(self.style.SUCCESS(f"{action}: {professor_name}"))
+                        if created:
+                            self.stdout.write(self.style.SUCCESS(f"    ✔ Создан: {professor.name}"))
+                        else:
+                            self.stdout.write(self.style.WARNING(f"    🔄 Обновлен (добавлена кафедра): {professor.name}"))
 
-        self.stdout.write(self.style.SUCCESS("Импорт данных завершен!"))
+                    elif file_name.endswith((".jpg", ".png")):  # Фото преподавателя
+                        professor_name = file_name.replace(".jpg", "").replace(".png", "").replace("_", " ")
+
+                        try:
+                            professor = Professor.objects.get(name=professor_name)
+                            destination_path = os.path.join(media_dir, file_name)
+
+                            # ✅ Копируем файл в `media/professors/photos/`
+                            shutil.copy(file_path, destination_path)
+
+                            # ✅ Сохраняем путь к фото в базе данных
+                            professor.photo = f"professors/photos/{file_name}"
+                            professor.save()
+
+                            self.stdout.write(self.style.SUCCESS(f"    🖼 Фото добавлено для {professor.name}"))
+                        except Professor.DoesNotExist:
+                            self.stdout.write(self.style.ERROR(f"    ❌ Преподаватель '{professor_name}' не найден!"))

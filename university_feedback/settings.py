@@ -18,7 +18,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'feedback_app',  # Ваше приложение
+    'django_recaptcha'
 ]
+
+RECAPTCHA_PUBLIC_KEY = '6Lfz1sgqAAAAACJ_zOuuY9EFwmm0y37sXMTbKL14'
+RECAPTCHA_PRIVATE_KEY = '6Lfz1sgqAAAAAFlv1Edt71CswaVkJEhLbIQE-Z04'
 
 # Средства обработки запросов
 MIDDLEWARE = [
@@ -96,6 +100,7 @@ USE_TZ = True
 # Статические файлы
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+LOGIN_URL = '/login/'
 
 # Медиафайлы (загрузка изображений)
 MEDIA_URL = '/media/'
@@ -116,9 +121,3 @@ LOGGING = {
     },
 }
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Используйте свой SMTP-сервер
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'wwork8655@gmail.com'  # Замените на ваш email
-EMAIL_HOST_PASSWORD = 'ggboria1996'  # Замените на ваш пароль

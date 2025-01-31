@@ -2,18 +2,27 @@ from django import forms
 from .models import Feedback
 
 class FeedbackForm(forms.ModelForm):
-    email = forms.EmailField(
-        required=True,
-        widget=forms.EmailInput(attrs={'placeholder': 'Введите вашу корпоративную почту'}),
-        help_text="Введите адрес корпоративной почты (например, имя@nure.ua)."
-    )
-
     class Meta:
         model = Feedback
-        fields = ['professionalism', 'clarity', 'attitude', 'comment', 'email']
+        fields = ["professionalism", "clarity", "attitude", "comment"]
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if not email.endswith('@nure.ua'):
-            raise forms.ValidationError("Вы должны использовать корпоративный адрес @nure.ua.")
-        return email
+    professionalism = forms.ChoiceField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Профессионализм (1-5)"
+    )
+    clarity = forms.ChoiceField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Понятность объяснения (1-5)"
+    )
+    attitude = forms.ChoiceField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label="Отношение к студентам (1-5)"
+    )
+    comment = forms.CharField(
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        required=False,
+        label="Комментарий"
+    )
