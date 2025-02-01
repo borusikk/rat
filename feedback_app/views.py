@@ -136,7 +136,7 @@ def professor_detail(request, professor_id):
                 # 🔹 Пересчитываем средний рейтинг
                 professor_avg_rating = professor.calculate_avg_rating()
 
-                return JsonResponse({"success": True, "new_avg_rating": professor_avg_rating})
+                return redirect('professor_detail', professor_id=professor.id)  # ✅ Перенаправляем
             except IntegrityError:
                 return JsonResponse({"error": "Такой отзыв уже существует!"}, status=400)
         else:

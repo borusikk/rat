@@ -79,7 +79,6 @@
             {% for feedback in feedbacks %}
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div>
-                        <strong>🆔 {{ feedback.user_ip }}</strong>
                         <p>⭐ {{ feedback.professionalism }}/5 | 📚 {{ feedback.clarity }}/5 | 👥 {{ feedback.attitude }}/5</p>
                         <p>{{ feedback.comment }}</p>
                     </div>
@@ -101,7 +100,7 @@
 
 <!-- JavaScript для оновлення сторінки -->
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+   document.addEventListener("DOMContentLoaded", function () {
         const form = document.querySelector("form");
         const reviewBtn = document.getElementById("review-submit-btn");
 
@@ -115,10 +114,12 @@
             })
             .then(response => {
                 if (response.redirected) {
-                    window.location.href = response.url; // Перезавантаження сторінки
+                    window.location.href = response.url;  // ✅ Перезагружаем страницу
                 }
             });
         });
+    });
+
 
         document.querySelectorAll(".like-btn, .dislike-btn").forEach(button => {
             button.addEventListener("click", function () {
