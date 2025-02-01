@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}📊 Статистика{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="text-center">📊 Статистика та аналітика</h2>
+
+    <!-- ТОП-10 Кафедр за рейтингом -->
+    <h3 class="mt-4">🏫 Топ-10 кафедр за рейтингом</h3>
+    <canvas id="departmentsChart"></canvas>
+
+    <!-- ТОП-5 Викладачів -->
+    <h3 class="mt-4">🏆 Топ-5 викладачів</h3>
+    <canvas id="professorsChart"></canvas>
+
+    <!-- Кількість відгуків по кафедрах -->
+    <h3 class="mt-4">📌 Кількість відгуків по кафедрах</h3>
+    <canvas id="feedbacksChart"></canvas>
+</div>
+
+<!-- Підключаємо Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Графік кафедр
+    var ctx1 = document.getElementById('departmentsChart').getContext('2d');
+    var departmentsChart = new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: [{% for d in departments %}"{{ d.name }}",{% endfor %}],
+            datasets: [{
+                label: 'Середній рейтинг',
+                data: [{% for d in departments %}{{ d.avg_rating|floatformat:1 }},{% endfor %}],
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        }
+    });
+
+    // Графік викладачів
+    var ctx2 = document.getElementById('professorsChart').getContext('2d');
+    var professorsChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: [{% for p in top_professors %}"{{ p.name }}",{% endfor %}],
+            datasets: [{
+                label: 'Середній рейтинг',
+                data: [{% for p in top_professors %}{{ p.avg_rating|floatformat:1 }},{% endfor %}],
+                backgroundColor: 'rgba(255, 99, 132, 0.7)'
+            }]
+        }
+    });
+
+    // Графік кількості відгуків
+    var ctx3 = document.getElementById('feedbacksChart').getContext('2d');
+    var feedbacksChart = new Chart(ctx3, {
+        type: 'bar',
+        data: {
+            labels: [{% for d in department_feedbacks %}"{{ d.name }}",{% endfor %}],
+            datasets: [{
+                label: 'Кількість відгуків',
+                data: [{% for d in department_feedbacks %}{{ d.feedback_count }},{% endfor %}],
+                backgroundColor: 'rgba(75, 192, 192, 0.7)'
+            }]
+        }
+    });
+</script>
+{% endblock %}

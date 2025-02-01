@@ -2,12 +2,23 @@
 {% block title %}Преподаватели {{ department.name }}{% endblock %}
 
 {% block content %}
+    <style>
+    .professor-img {
+        width: 50%; /* 50% от ширины карточки */
+        height: auto;
+        object-fit: cover;  /* Обрезает фото под размер */
+        display: block;
+        margin: 0 auto; /* Центрирование */
+        border-radius: 10px;
+    }
+</style>
+
 <div class="container mt-4">
-    <h2 class="mb-3 text-center">Преподаватели кафедры: {{ department.name }}</h2>
+    <h2 class="mb-3">Преподаватели кафедры: {{ department.name }}</h2>
 
     <div class="row">
         {% for professor in professors %}
-        <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="col-md-4">
             <div class="card shadow-sm mb-4">
                 <!-- ФОТО -->
                 <div class="text-center mt-3">
@@ -38,7 +49,7 @@
             </div>
         </div>
         {% empty %}
-            <p class="text-muted text-center">Преподавателей пока нет.</p>
+            <p class="text-muted">Преподавателей пока нет.</p>
         {% endfor %}
     </div>
 </div>

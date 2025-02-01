@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Кафедра {{ department.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4 text-center">📚 Кафедра: {{ department.name }}</h1>
+
+    <!-- Інформація про кафедру -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">{{ department.faculty.name }}</h5>
+            <p class="card-text">{{ department.description|default:"Опис відсутній" }}</p>
+        </div>
+    </div>
+
+    <!-- Кнопки сортування -->
+    <div class="d-flex justify-content-center my-3">
+        <a href="?sort=rating" class="btn btn-primary mx-2 {% if sort_option == 'rating' %}active{% endif %}">
+            📊 Сортувати за рейтингом
+        </a>
+        <a href="?sort=feedback_count" class="btn btn-secondary mx-2 {% if sort_option == 'feedback_count' %}active{% endif %}">
+            💬 Сортувати за кількістю відгуків
+        </a>
+    </div>
+
+    <!-- Список викладачів кафедри -->
+    <h2 class="my-3">👨‍🏫 Викладачі</h2>
+    {% if professors %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for professor in professors %}
+        <div class="col">
+            <div class="card shadow-sm h-100">
+                <div class="d-flex justify-content-center align-items-center mt-3">
+                    <!-- Фото викладача з збереженням пропорцій -->
+                    {% if professor.photo %}
+                    <img src="{{ professor.photo.url }}" class="rounded img-fluid"
+                         alt="Фото {{ professor.name }}" style="max-width: 120px; height: auto;">
+                    {% else %}
+                    <img src="/static/default_photo.jpg" class="rounded-circle img-fluid"
+                         alt="Фото відсутнє" style="max-width: 120px; height: auto;">
+                    {% endif %}
+                </div>
+
+                <div class="card-body text-center">
+                    <h5 class="card-title">
+                        <a href="{% url 'professor_detail' professor.id %}" class="text-decoration-none">
+                            {{ professor.name }}
+                        </a>
+                    </h5>
+                    <p class="card-text"><strong>⭐ Середній рейтинг:</strong> {{ professor.avg_rating|default:"0"|floatformat:1 }}</p>
+                    <p class="card-text"><strong>💬 Відгуки:</strong> {{ professor.feedback_count }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-center text-muted">На цій кафедрі поки немає викладачів.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% for feedback in feedbacks %}
+<div class="feedback">
+    <p>{{ feedback.text }}</p>
+    <button onclick="likeFeedback({{ feedback.id }})">👍 {{ feedback.likes }}</button>
+    <button onclick="dislikeFeedback({{ feedback.id }})">👎 {{ feedback.dislikes }}</button>
+</div>
+{% endfor %}
+
+<script>
+function likeFeedback(feedbackId) {
+    fetch(`/feedback/${feedbackId}/like/`).then(response => response.json()).then(data => {
+        location.reload();
+    });
+}
+
+function dislikeFeedback(feedbackId) {
+    fetch(`/feedback/${feedbackId}/dislike/`).then(response => response.json()).then(data => {
+        location.reload();
+    });
+}
+</script>

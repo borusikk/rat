@@ -1,99 +1,121 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Университетский рейтинг{% endblock %}</title>
+    <title>{% block title %}Система рейтингів{% endblock %}</title>
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Підключення Bootstrap -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <!-- Стилі -->
     <style>
-        /* Фиксированное меню */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #F8F9FA; /* Світло-сірий фон */
+            color: #2C3E50; /* Темно-зелений текст */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Верхня навігація */
         .navbar {
-            background-color: #343a40; /* Темный фон */
+            background-color: #2C3E50; /* Темно-зелений */
         }
         .navbar-brand, .nav-link {
-            color: white !important;
+            color: #FFFFFF !important;
+            font-weight: 500;
         }
         .nav-link:hover {
-            color: #f8f9fa !important; /* Подсветка */
-        }
-        .navbar-toggler {
-            border-color: white;
+            color: #1ABC9C !important; /* Бірюзовий */
         }
 
-        /* Корректный отступ для контента (учитывает фиксированное меню) */
-        body {
-            padding-top: 80px;
+        /* Контентний блок */
+        .container {
+            max-width: 1200px;
+            flex: 1;
         }
 
-        /* Карточки преподавателей */
-        .card {
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: scale(1.02); /* Легкое увеличение при наведении */
-        }
-        .professor-img {
-            width: 50%;
-            height: auto;
-            object-fit: cover;
-            display: block;
-            margin: 0 auto;
-            border-radius: 10px;
-        }
-
-        /* Улучшение таблиц рейтинга */
-        .table-responsive {
-            overflow-x: auto; /* Добавляем скролл для телефонов */
-        }
-
-        /* Для мобильных телефонов уменьшаем отступы */
-        @media (max-width: 768px) {
-            h2 {
-                font-size: 1.5rem;
-            }
-            .btn {
-                font-size: 0.9rem;
-            }
+        /* Футер */
+        .footer {
+            background-color: #2C3E50; /* Темний колір */
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            font-size: 14px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
         }
     </style>
+<!-- ⚙ Закріплення футера внизу сторінки -->
+<style>
+    html, body {
+        height: 100%;
+    }
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+    .container {
+        flex: 1;
+    }
+    footer {
+        width: 100%;
+    }
+
+
+    .footer-link {
+        color: #f8f9fa !important;
+        text-decoration: none !important;
+        font-weight: 500;
+        transition: color 0.3s ease-in-out;
+    }
+    .footer-link:hover {
+        color: #1ABC9C !important;
+    }
+</style>
+
 </head>
+
 <body>
 
-    <!-- 🔹 НАВИГАЦИОННОЕ МЕНЮ -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-        <div class="container">
-            <!-- ЛОГО -->
-            <a class="navbar-brand" href="{% url 'home' %}">🏛 Университет</a>
 
-            <!-- КНОПКА ДЛЯ МОБИЛЬНЫХ -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- ССЫЛКИ -->
-            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">🏠 Главная</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'department_ranking' %}">📊 Рейтинг кафедр</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}#search">🔍 Поиск</a>
-                    </li>
-                </ul>
-            </div>
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'home' %}">🏫 NURE-RATING</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">🏠 Головна</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'department_ranking' %}">📊 Рейтинг кафедр</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'donate' %}">💰 Підтримати проєкт</a></li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
+<div class="container mt-4">
     {% block content %}
     {% endblock %}
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<footer class="bg-dark text-light text-center py-3 mt-5">
+    <p class="mb-1">© 2025 Університетські рейтинги. Всі права захищені.</p>
+    <p class="mb-1">
+        <a href="{% url 'donate' %}" class="footer-link">💰 Підтримати проєкт</a> |
+        <a href="mailto:wwork8655@gmail.com" class="footer-link">📧 Контакти</a> |
+        <a href="{% url 'privacy_policy' %}" class="footer-link">📜 Політика конфіденційності</a>
+    </p>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

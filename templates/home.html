@@ -1,146 +1,123 @@
 {% extends 'base.html' %}
-
-{% block title %}Рейтинг преподавателей{% endblock %}
+{% block title %}🏆 Головна - Рейтинг викладачів та кафедр{% endblock %}
 
 {% block content %}
-    <h1>🏆 Рейтинг преподавателей</h1>
+<div class="container mt-4">
+<style>
+    a {
+        color: #2C3E50 !important;
+        text-decoration: none !important;
+        font-weight: 500;
+        transition: color 0.3s ease-in-out;
+    }
 
-    <!-- 🔍 Поле поиска -->
-    <input type="text" id="search-input" class="form-control" placeholder="Введите имя преподавателя..." autocomplete="off">
-    <div id="search-results" class="list-group mt-2" style="max-height: 200px; overflow-y: auto; display: none;"></div>
 
-    <!-- 📊 Кнопка "Рейтинг кафедр" -->
-    <a href="{% url 'department_ranking' %}" class="btn btn-primary mt-3">📊 Рейтинг кафедр</a>
+    a:hover {
+        color: #1ABC9C !important;
+    }
+</style>
 
-    <div class="row mt-4">
-        <!-- 🏆 Таблица 1: ТОП-5 по Профессионализму -->
-        <div class="col-md-4">
-            <h3 class="text-center">🏆 ТОП-5 по Профессионализму</h3>
-            <table class="table table-striped text-center">
-                <thead>
-                    <tr>
-                        <th>Фото</th>
-                        <th>ФИО</th>
-                        <th>Рейтинг</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for professor in top_professionalism %}
-                    <tr>
-                        <td>
-                            <img src="{{ professor.photo.url }}" width="50" onerror="this.src='/static/default_photo.jpg'">
-                        </td>
-                        <td><a href="{% url 'professor_detail' professor.id %}">{{ professor.name }}</a></td>
-                        <td>{{ professor.avg_professionalism|floatformat:1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
 
-        <!-- 🏆 Таблица 2: ТОП-5 по Ясности -->
-        <div class="col-md-4">
-            <h3 class="text-center">🏆 ТОП-5 по Ясности</h3>
-            <table class="table table-striped text-center">
-                <thead>
-                    <tr>
-                        <th>Фото</th>
-                        <th>ФИО</th>
-                        <th>Рейтинг</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for professor in top_clarity %}
-                    <tr>
-                        <td>
-                            <img src="{{ professor.photo.url }}" width="50" onerror="this.src='/static/default_photo.jpg'">
-                        </td>
-                        <td><a href="{% url 'professor_detail' professor.id %}">{{ professor.name }}</a></td>
-                        <td>{{ professor.avg_clarity|floatformat:1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 🏆 Таблица 3: ТОП-5 по Отношению -->
-        <div class="col-md-4">
-            <h3 class="text-center">🏆 ТОП-5 по Отношению</h3>
-            <table class="table table-striped text-center">
-                <thead>
-                    <tr>
-                        <th>Фото</th>
-                        <th>ФИО</th>
-                        <th>Рейтинг</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for professor in top_attitude %}
-                    <tr>
-                        <td>
-                            <img src="{{ professor.photo.url }}" width="50" onerror="this.src='/static/default_photo.jpg'">
-                        </td>
-                        <td><a href="{% url 'professor_detail' professor.id %}">{{ professor.name }}</a></td>
-                        <td>{{ professor.avg_attitude|floatformat:1 }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <input type="text" id="search-input" class="form-control form-control-lg" placeholder="🔎 Введіть прізвище викладача...">
+            <div id="autocomplete-results" class="list-group mt-2"></div>
         </div>
     </div>
 
-    <!-- ✅ JavaScript для автозаполнения поиска -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const searchInput = document.getElementById("search-input");
-            const searchResults = document.getElementById("search-results");
+    <div class="row">
+        <!-- 🏅 ТОП-5 Викладачів -->
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h3 class="text-center">🏅 ТОП-5 Викладачів</h3>
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Фото</th>
+                            <th>Ім'я</th>
+                            <th>Середній рейтинг</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for professor in top_professors %}
+                        <tr>
+                            <td>
+                                <img src="{{ professor.photo.url }}"
+                                     class="rounded-circle"
+                                     alt="{{ professor.name }}"
+                                     style="width: 60px; height: 60px; object-fit: cover;">
+                            </td>
+                            <td>
+                                <a href="{% url 'professor_detail' professor.id %}">
+                                    {{ professor.name }}
+                                </a>
+                            </td>
+                            <td>⭐ {{ professor.avg_rating|floatformat:1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            searchInput.addEventListener("input", function() {
-                const query = searchInput.value.trim(); // Убираем пробелы
+        <!-- 🏛️ ТОП-5 Кафедр -->
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h3 class="text-center">🏛️ ТОП-5 Кафедр</h3>
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Кафедра</th>
+                            <th>Середній рейтинг</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for department in top_departments %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'department_detail' department.id %}">
+                                    {{ department.name }}
+                                </a>
+                            </td>
+                            <td>⭐ {{ department.avg_rating|floatformat:1 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-                if (query.length === 0) {
-                    searchResults.style.display = "none";
-                    return;
-                }
+</div>
 
-                console.log("🔍 Отправка запроса: /autocomplete/?q=" + query);
+<!-- 🔥 JS для автозаповнення пошуку -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const searchInput = document.getElementById("search-input");
+        const resultsBox = document.getElementById("autocomplete-results");
 
+        searchInput.addEventListener("input", function () {
+            let query = searchInput.value.trim();
+            if (query.length > 1) {
                 fetch(`/autocomplete/?q=${query}`)
-                    .then(response => {
-                        console.log("📩 Ответ получен", response);
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
-                        console.log("📊 Данные из API:", data);
-
-                        searchResults.innerHTML = "";
-                        if (!data.results || data.results.length === 0) {
-                            searchResults.innerHTML = '<div class="list-group-item">Не найдено</div>';
-                        } else {
-                            data.results.forEach(professor => {
-                                const item = document.createElement("a");
-                                item.href = `/professor/${professor.id}/`;
-                                item.classList.add("list-group-item", "list-group-item-action");
-                                item.innerHTML = `<img src="${professor.photo}" width="30" class="me-2">${professor.name} - ⭐ ${professor.avg_rating}`;
-                                searchResults.appendChild(item);
-                            });
-                        }
-                        searchResults.style.display = "block";
-                    })
-                    .catch(error => {
-                        console.error("❌ Ошибка поиска:", error);
+                        resultsBox.innerHTML = "";
+                        data.results.forEach(professor => {
+                            let item = document.createElement("a");
+                            item.href = `/professor/${professor.id}/`;
+                            item.classList.add("list-group-item", "list-group-item-action");
+                            item.innerHTML = `
+                                <img src="${professor.photo}" class="rounded-circle me-2" width="40" height="40" style="object-fit: cover;">
+                                ${professor.name} ⭐ ${professor.avg_rating}`;
+                            resultsBox.appendChild(item);
+                        });
                     });
-            });
-
-            document.addEventListener("click", function(event) {
-                if (!searchResults.contains(event.target) && event.target !== searchInput) {
-                    searchResults.style.display = "none";
-                }
-            });
+            } else {
+                resultsBox.innerHTML = "";
+            }
         });
-    </script>
-
-
-
+    });
+</script>
 
 {% endblock %}

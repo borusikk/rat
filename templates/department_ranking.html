@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}📊 Рейтинг кафедр{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-3">📊 Рейтинг кафедр</h1>
+    <p class="text-center text-muted">Оцініть середній рівень професіоналізму, доступності пояснень та ставлення до студентів.</p>
+
+    <table class="table table-striped table-hover shadow-sm">
+        <thead class="table-dark text-center">
+            <tr>
+                <th>#️⃣</th>
+                <th>🏛 Назва кафедри</th>
+                <th>🎓 Факультет</th>
+                <th>📖 Професіоналізм</th>
+                <th>💬 Пояснення</th>
+                <th>👥 Ставлення</th>
+                <th>👨‍🏫 Викладачі</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for department in departments %}
+            <tr class="{% if forloop.first %}table-warning{% elif forloop.counter == 2 %}table-secondary{% elif forloop.counter == 3 %}table-info{% endif %}">
+                <td class="text-center">
+                    {% if forloop.first %}🥇
+                    {% elif forloop.counter == 2 %}🥈
+                    {% elif forloop.counter == 3 %}🥉
+                    {% else %}{{ forloop.counter }}{% endif %}
+                </td>
+                <td>
+                    <a href="{% url 'department_detail' department.id %}" class="fw-bold text-decoration-none">
+                        {{ department.name }}
+                    </a>
+                </td>
+                <td class="text-muted">{{ department.faculty.name }}</td>
+                <td class="text-center">{{ department.avg_professionalism|default:"N/A"|floatformat:1 }} ⭐</td>
+                <td class="text-center">{{ department.avg_clarity|default:"N/A"|floatformat:1 }} ⭐</td>
+                <td class="text-center">{{ department.avg_attitude|default:"N/A"|floatformat:1 }} ⭐</td>
+                <td class="text-center">{{ department.professor_count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

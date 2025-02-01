@@ -1,77 +1,141 @@
 {% extends 'base.html' %}
-{% block title %}{{ professor.name }}{% endblock %}
+
+{% block title %}{{ professor.name }} - Оцінка{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row">
-        <!-- ФОТО ПРЕПОДАВАТЕЛЯ -->
-        <div class="col-md-4 text-center">
-            {% if professor.photo %}
-                <img src="{{ professor.photo.url }}" class="img-fluid rounded shadow" alt="Фото {{ professor.name }}" width="200">
-            {% else %}
-                <img src="/static/default_photo.jpg" class="img-fluid rounded shadow" alt="Фото отсутствует" width="200">
-            {% endif %}
-        </div>
+    <div class="container mt-4">
+        <!-- Блок інформації про викладача -->
+        <div class="card shadow-sm p-4">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <img src="{{ professor.photo.url }}" class="img-fluid rounded" alt="Фото {{ professor.name }}" style="max-width: 200px;">
+                </div>
+                <div class="col-md-8">
+                    <h2>{{ professor.name }}</h2>
+                    <p class="text-muted">Кафедри:
+                        {% for department in professor.departments.all %}
+                            <a href="{% url 'department_detail' department.id %}" class="badge bg-secondary text-decoration-none">
+                                {{ department.name }}
+                            </a>
+                        {% endfor %}
+                    </p>
+                    <h4>Середній рейтинг:
+                        <span id="average-rating">
+                            {{ professor_avg_rating|default:"N/A"|floatformat:1 }}
+                        </span> ⭐
+                    </h4>
 
-        <!-- ИНФОРМАЦИЯ О ПРЕПОДАВАТЕЛЕ -->
-        <div class="col-md-8">
-            <h2>{{ professor.name }}</h2>
-            <p class="text-muted">
-                Кафедры:
-                {% for department in professor.departments.all %}
-                    <span class="badge bg-primary">{{ department.name }}</span>
-                {% endfor %}
-            </p>
-
-            <!-- Средний рейтинг -->
-            <h4>Средний рейтинг</h4>
-            <ul class="list-group mb-3">
-                <li class="list-group-item">👨‍🏫 Профессионализм: <strong>{{ avg_rating.professionalism|default:"N/A"|floatformat:1 }}</strong></li>
-                <li class="list-group-item">📢 Понятность объяснения: <strong>{{ avg_rating.clarity|default:"N/A"|floatformat:1 }}</strong></li>
-                <li class="list-group-item">😊 Отношение к студентам: <strong>{{ avg_rating.attitude|default:"N/A"|floatformat:1 }}</strong></li>
-            </ul>
+                    <!-- Кнопка "Пожаловаться" -->
+                    <button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#complaintModal">🚨 Пожаловаться</button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <hr>
+    <!-- 🔴 Модальне вікно для подання скарги -->
+    <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="complaintModalLabel">🚨 Подати скаргу</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'report_professor' professor.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="complaintText" class="form-label">Ваша скарга:</label>
+                            <textarea class="form-control" id="complaintText" name="complaint_text" rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-danger">🚨 Надіслати скаргу</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- ФОРМА ОТЗЫВА -->
-    <h4>{% if user_feedback %}Редактировать отзыв{% else %}Добавить отзыв{% endif %}</h4>
-    <form method="post" class="card p-3 shadow-sm">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label class="form-label">👨‍🏫 Профессионализм (1-5)</label>
-            {{ form.professionalism }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">📢 Понятность объяснения (1-5)</label>
-            {{ form.clarity }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">😊 Отношение к студентам (1-5)</label>
-            {{ form.attitude }}
-        </div>
-        <div class="mb-3">
-            <label class="form-label">💬 Комментарий (необязательно)</label>
-            {{ form.comment }}
-        </div>
-        <button type="submit" class="btn btn-success">Сохранить</button>
-    </form>
+    <!-- Блок форми відгуку -->
+    <div class="card shadow-sm mt-4 p-4">
+        <h3 class="mb-3">📝 Залишити відгук</h3>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.as_p }}
+            </div>
 
-    <hr>
-
-    <!-- СПИСОК ОТЗЫВОВ -->
-    <h4>Отзывы студентов</h4>
-    {% for feedback in feedbacks %}
-        <div class="card mb-2 p-3 shadow-sm">
-            <p>⭐ Проф: {{ feedback.professionalism }}, 📢 Понятность: {{ feedback.clarity }}, 😊 Отношение: {{ feedback.attitude }}</p>
-            <p class="text-muted">🕒 {{ feedback.created_at|date:"d M Y, H:i" }}</p>
-            {% if feedback.comment %}
-                <blockquote class="blockquote">{{ feedback.comment }}</blockquote>
+            {% if existing_feedback %}
+                <button type="submit" class="btn btn-primary" id="review-submit-btn">✏ Змінити відгук</button>
+            {% else %}
+                <button type="submit" class="btn btn-success" id="review-submit-btn">✅ Надіслати відгук</button>
             {% endif %}
-        </div>
-    {% empty %}
-        <p class="text-muted">Отзывов пока нет.</p>
-    {% endfor %}
+        </form>
+    </div>
+
+    <!-- Список відгуків -->
+    <h3 class="my-4">📢 Відгуки студентів</h3>
+    {% if feedbacks %}
+        <ul class="list-group">
+            {% for feedback in feedbacks %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>🆔 {{ feedback.user_ip }}</strong>
+                        <p>⭐ {{ feedback.professionalism }}/5 | 📚 {{ feedback.clarity }}/5 | 👥 {{ feedback.attitude }}/5</p>
+                        <p>{{ feedback.comment }}</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-success like-btn" data-id="{{ feedback.id }}">
+                            👍 <span class="like-count">{{ feedback.likes }}</span>
+                        </button>
+                        <button class="btn btn-outline-danger dislike-btn" data-id="{{ feedback.id }}">
+                            👎 <span class="dislike-count">{{ feedback.dislikes }}</span>
+                        </button>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">Поки що немає відгуків. Будьте першим!</p>
+    {% endif %}
 </div>
+
+<!-- JavaScript для оновлення сторінки -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+        const reviewBtn = document.getElementById("review-submit-btn");
+
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            let formData = new FormData(form);
+
+            fetch(window.location.href, {
+                method: "POST",
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url; // Перезавантаження сторінки
+                }
+            });
+        });
+
+        document.querySelectorAll(".like-btn, .dislike-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                let feedbackId = this.getAttribute("data-id");
+                let action = this.classList.contains("like-btn") ? "like" : "dislike";
+
+                fetch(`/feedback/${feedbackId}/${action}/`, { method: "POST" })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        this.querySelector("span").textContent = data.count;
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}
