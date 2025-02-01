@@ -7,7 +7,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Безопасность
 SECRET_KEY = 'django-insecure-jgfk#$=8%%cxb2_=r^(%5wv5#@wy@-ufoegz4@i-38-58%hff4'
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['nure-api.onrender.com']
 
 # Установленные приложения
 INSTALLED_APPS = [
