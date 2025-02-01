@@ -41,10 +41,12 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesSto
 ROOT_URLCONF = 'university_feedback.urls'
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
+import tempfile
+tempfile.tempdir = '/tmp'
+
 
 
 
