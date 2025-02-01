@@ -28,7 +28,7 @@ def home(request):
         "top_departments": top_departments
     })
 
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.db.models import Q, Avg
 import traceback
 
@@ -256,3 +256,5 @@ def report_professor(request, professor_id):
     return JsonResponse({"error": "Дозволено лише POST-запити."}, status=400)
 def privacy_policy(request):
     return render(request, "privacy_policy.html")
+def health_check(request):
+    return HttpResponse("OK")

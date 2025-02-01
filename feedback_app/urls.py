@@ -13,5 +13,5 @@ urlpatterns = [
     path('donate/', views.donation_page, name='donate'),  # Шлях до сторінки донату
     path('professor/<int:professor_id>/report/', views.report_professor, name='report_professor'),  # Нова URL-адреса
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
-
+    path('health', views.health_check, name='health_check'),
 ]
