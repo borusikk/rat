@@ -1,20 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}Преподаватели {{ department.name }}{% endblock %}
+{% block title %}Викладачі {{ department.name }}{% endblock %}
 
 {% block content %}
     <style>
     .professor-img {
-        width: 50%; /* 50% от ширины карточки */
+        width: 50%; /* 50% від ширини картки */
         height: auto;
-        object-fit: cover;  /* Обрезает фото под размер */
+        object-fit: cover;  /* Обрізає фото під розмір */
         display: block;
-        margin: 0 auto; /* Центрирование */
+        margin: 0 auto; /* Центрування */
         border-radius: 10px;
     }
 </style>
 
 <div class="container mt-4">
-    <h2 class="mb-3">Преподаватели кафедры: {{ department.name }}</h2>
+    <h2 class="mb-3">Викладачі кафедри: {{ department.name }}</h2>
 
     <div class="row">
         {% for professor in professors %}
@@ -25,31 +25,31 @@
                     {% if professor.photo %}
                         <img src="{{ professor.photo.url }}" class="professor-img" alt="{{ professor.name }}">
                     {% else %}
-                        <img src="/static/default_photo.jpg" class="professor-img" alt="Фото отсутствует">
+                        <img src="/static/default_photo.jpg" class="professor-img" alt="Фото відсутнє">
                     {% endif %}
                 </div>
 
                 <div class="card-body text-center">
-                    <!-- Имя -->
+                    <!-- Ім'я -->
                     <h5 class="card-title">{{ professor.name }}</h5>
 
-                    <!-- Средний рейтинг -->
+                    <!-- Середній рейтинг -->
                     <p class="card-text">
-                        ⭐ Средний рейтинг:
+                        ⭐ Середній рейтинг:
                         <strong>
                             {{ professor.calculated_avg_rating|default:"N/A"|floatformat:1 }}
                         </strong>
                     </p>
 
-                    <!-- Кнопка "Подробнее" -->
+                    <!-- Кнопка "Докладніше" -->
                     <a href="{% url 'professor_detail' professor.id %}" class="btn btn-primary">
-                        Подробнее
+                        Докладніше
                     </a>
                 </div>
             </div>
         </div>
         {% empty %}
-            <p class="text-muted">Преподавателей пока нет.</p>
+            <p class="text-muted">Викладачів поки немає.</p>
         {% endfor %}
     </div>
 </div>
