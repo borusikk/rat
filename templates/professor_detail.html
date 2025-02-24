@@ -25,31 +25,6 @@
                             {{ professor_avg_rating|default:"N/A"|floatformat:1 }}
                         </span> ⭐
                     </h4>
-
-                    <!-- Кнопка "Пожаловаться" -->
-                    <button class="btn btn-danger mt-2" data-bs-toggle="modal" data-bs-target="#complaintModal">🚨 Пожаловаться</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🔴 Модальне вікно для подання скарги -->
-    <div class="modal fade" id="complaintModal" tabindex="-1" aria-labelledby="complaintModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="complaintModalLabel">🚨 Подати скаргу</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрити"></button>
-                </div>
-                <div class="modal-body">
-                    <form method="post" action="{% url 'report_professor' professor.id %}">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                            <label for="complaintText" class="form-label">Ваша скарга:</label>
-                            <textarea class="form-control" id="complaintText" name="complaint_text" rows="4" required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-danger">🚨 Надіслати скаргу</button>
-                    </form>
                 </div>
             </div>
         </div>
