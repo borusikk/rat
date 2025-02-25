@@ -16,6 +16,6 @@ urlpatterns = [
     path('health', views.health_check, name='health_check'),
 ]
 
-handler404 = custom_404
-handler500 = custom_500
-handler403 = custom_403
+handler404 = views.custom_404
+handler500 = views.custom_500
+handler403 = views.custom_403
