@@ -15,3 +15,7 @@ urlpatterns = [
     path("privacy-policy/", views.privacy_policy, name="privacy_policy"),
     path('health', views.health_check, name='health_check'),
 ]
+
+handler404 = custom_404
+handler500 = custom_500
+handler403 = custom_403
