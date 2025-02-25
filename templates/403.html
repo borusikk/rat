@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <style>
+        .error-container {
+            text-align: center;
+            padding: 50px;
+        }
+        .error-code {
+            font-size: 100px;
+            font-weight: bold;
+            color: #ff9800;
+        }
+        .error-message {
+            font-size: 24px;
+            color: #555;
+        }
+        .error-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: white;
+            background-color: #ff9800;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        .error-button:hover {
+            background-color: #e68900;
+        }
+    </style>
+
+    <div class="error-container">
+        <div class="error-code">403</div>
+        <div class="error-message">Доступ заблоковано 🚫</div>
+        <a href="/" class="error-button">Повернутися на головну</a>
+    </div>
+{% endblock %}
